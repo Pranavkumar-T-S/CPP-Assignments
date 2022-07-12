@@ -1,12 +1,12 @@
 #include <iostream>
-
+#include <memory>
 using namespace std;
 
 // declaring number of rows and columns
 const int m = 5, n = 5;
 
 // To find a group in the city at the given i,j location using dfs
-void find_group(int *arr, bool *visited, int i, int j, int count, int *res, int *groups)
+void find_group(unique_ptr<int[]> &arr, unique_ptr<bool[]> &visited, int i, int j, int count, unique_ptr<int[]> &res, unique_ptr<int[]> &groups)
 {
     visited[i * m + j] = true;
 
@@ -23,11 +23,11 @@ void find_group(int *arr, bool *visited, int i, int j, int count, int *res, int 
     groups[i * m + j] = count + 1;
 }
 // To find all groups in the city
-void find_groups(int *arr, int *res, int &count, int *groups)
+void find_groups(unique_ptr<int[]> &arr, unique_ptr<int[]> &res, int &count, unique_ptr<int[]> &groups)
 {
-    
+
     // allocating memory for Is visited flag and initializing
-    bool *visited = new bool[m * n]();
+    unique_ptr<bool[]> visited = make_unique<bool[]>(m * n);
 
     for (int i = 0; i < m; i++)
     {
@@ -41,11 +41,9 @@ void find_groups(int *arr, int *res, int &count, int *groups)
         }
     }
 
-    // deleting allocated memory
-    delete[] visited;
 }
 
-void flood_fill(int *dist, int *groups, int m, int n, int i, int j, int distance)
+void flood_fill(unique_ptr<int[]> &dist, unique_ptr<int[]> &groups, int m, int n, int i, int j, int distance)
 {
 
     // for (int i = 0; i < m; i++)
@@ -86,22 +84,22 @@ int main()
                        {0, 1, 0, 2, 3},
                        {0, 0, 1, 1, 0}};
 
-    int *matrix = new int[m * n];
+    unique_ptr<int[]> matrix = make_unique<int[]>(m * n);
 
     // writing input data to matrix
     for (int i = 0; i < m; i++)
     {
         for (int j = 0; j < n; j++)
         {
-            *(matrix + i * m + j) = input[i][j];
+            matrix[i * m + j] = input[i][j];
         }
     }
 
     // allocating memory and initializing the result array
-    int *res = new int[m * n]();
+    unique_ptr<int[]> res = make_unique<int[]>(m * n);
 
     // allocating memory and initializing the groups array matrix which represents group of each houses in the city
-        int *groups = new int[m * n]();
+    unique_ptr<int[]> groups = make_unique<int[]>(m * n);
 
     // variable to count number of groups
     int count = 0;
@@ -112,7 +110,7 @@ int main()
     // variable to represent leader group index
     int leaderGroupIndex = 0;
 
-    // To print the groups, its strengths and the leader  
+    // To print the groups, its strengths and the leader
     cout << "The groups are ";
     for (int i = 0; i < count; i++)
     {
@@ -133,7 +131,7 @@ int main()
     // }
 
     // allocating memory and initializing for distance matrix which tells distance of each house from leader group
-    int *dist = new int[m * n];
+    unique_ptr<int[]> dist = make_unique<int[]>(m * n);
 
     for (int i = 0; i < m; i++)
     {
@@ -162,7 +160,7 @@ int main()
     // }
 
     // Allocating and Initializing array to store shortest distances for every group
-    int *shortest_distances = new int[count];
+    unique_ptr<int[]> shortest_distances = make_unique<int[]>(count);
     for (int i = 0; i < count; i++)
         shortest_distances[i] = INT32_MAX;
 
@@ -178,9 +176,7 @@ int main()
     // printing shortest distance to each groups
     for (int i = 0; i < count; i++)
     {
-        cout << "The shortest distance for group with strength " << res[i] << " is " << shortest_distances[i] << endl;
+        cout << "The shortest distance for group with strength " << res[i] << " from leader group is " << shortest_distances[i] << endl;
     }
 
-    // deleting allocated memory
-    delete[] matrix, res, groups, dist, shortest_distances;
 }
