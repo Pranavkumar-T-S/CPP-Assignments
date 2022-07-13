@@ -61,6 +61,11 @@ private:
 public:
     Student(string rollno, string name, int age, string course)
     {
+        if (objCreated)
+        {
+            throw AlreadyCreated();
+        }
+        objCreated = true;
         if (age > 21 || age < 15)
         {
             throw InvalidAgeException();
@@ -97,8 +102,8 @@ int main()
     try
     {
         Student s1("19D064", "pranavkumar", 20, "Engineering");
+        // Student s2("19D060", "pranav", 20, "Science");
     }
-    // 
     catch (InvalidAgeException &e)
     {
         cout << e.what();
@@ -115,7 +120,8 @@ int main()
     {
         cout << e.what();
     }
-    catch(...){
+    catch (...)
+    {
         cout << "unknown error";
     }
 }
