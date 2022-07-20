@@ -1,0 +1,25 @@
+syntax = "proto3";
+
+package users;
+
+message User{
+     string username = 1;
+     string password = 2;
+    
+    optional string name = 3;
+    optional string email = 4;
+    optional string location = 5;
+    optional string mobile = 6;
+
+
+}
+
+enum Gender{
+    MALE = 0;
+    FEMALE = 1;
+}
+
+message Users{
+    repeated User users = 1;
+
+}
