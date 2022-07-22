@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package project;
+
+message Project{
+    string id = 1;
+    string name = 2;
+    optional string author = 3;
+    
+    repeated string text =  4;
+    int32 version  = 5;
+    int32 operationscount = 6;
+    string createdtime = 11;
+    string lastmodified = 12;
+
+}
+
+
+message ProjectHeader {
+    string id = 1; 
+    string name = 2;
+    string Creationdate = 3;
+    string author = 4;
+}
+
+message ProjectNames {
+    repeated ProjectHeader projectnames = 1;
+    int32 counter = 2;
+}

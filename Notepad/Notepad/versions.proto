@@ -1,0 +1,29 @@
+syntax = "proto3";
+
+package versions;
+
+message Change {
+    OperationType opearationtype= 1;
+    int32 linenum = 2;
+    string line0 = 3;
+    optional string line1 = 4;
+    string timestamp = 5; 
+
+}
+
+enum OperationType {
+    ADD = 0;
+    UPDATE = 1;
+    DELETE = 2;
+}
+
+message Version {
+    int32 versionNumber =1;
+    repeated Change changes = 2;
+    string createdTime = 3;
+}
+
+message Versions {
+    repeated Version versionlist = 1;
+    repeated Change changes = 2;
+}
