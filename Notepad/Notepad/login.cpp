@@ -41,6 +41,7 @@ void Users::addUser() {
 	while (true) {
 
 		std::cout << endl << "Enter Username: ";
+		std::cin.ignore();
 		getline(std::cin, username);
 		if (this->findUserbyUsername(username) == -1) {
 			newUser->set_username(username);
@@ -120,6 +121,7 @@ string Users::signIn() {
 	string username, password;
 	int index;
 	std::cout << "Enter your username: ";
+	std::cin.ignore();
 	std::getline(cin, username);
 	index = this->findUserbyUsername(username);
 	if (index != -1) {
@@ -131,12 +133,12 @@ string Users::signIn() {
 		}
 		else {
 			std::cout << "Wrong password " << endl;
-			return "invalid";
+			return "";
 		}
 	}
 	else {
 		std::cout << "Username not found... " << endl;
 		std::cout << "Try again or Create a new one " << endl;
-		return "invalid";
+		return "";
 	}
 }
