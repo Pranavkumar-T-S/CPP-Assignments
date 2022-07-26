@@ -1,6 +1,7 @@
 #include<regex>
 #include<iostream>
 #include<fstream>
+#include <google/protobuf/util/json_util.h>
 #include "login.h"
 using namespace std;
      
@@ -17,22 +18,42 @@ string encryptPassword(string message) {
 	return message;
 }
 
-Users::Users() {
+Users::Users(bool json) {
+	this->json = json;
 	std::ifstream fin;
-	fin.open("users_database.bin", std::ios_base::binary);
-	if (!this->userslist.ParseFromIstream(&fin)) {
-		cerr << "Failed to parse address book." << endl;
+	if (!this->json) {
+		fin.open("users_database.bin", std::ios_base::binary);
+		if (!this->userslist.ParseFromIstream(&fin)) {
+			cerr << "Failed to parse address book." << endl;
+		}
+		fin.close();
 	}
-	fin.close();
+	else {
+		std::string input;
+		fin.open("users_database.json", std::ios_base::in);
+		std::getline(fin, input);
+		google::protobuf::util::JsonStringToMessage(input, &userslist);
+	}
 }
 
 void Users::writeData() {
 	std::ofstream fout;
-	fout.open("users_database.bin", std::ios_base::binary);
-	if (!userslist.SerializeToOstream(&fout)) {
-		cerr << "Failed to write address book." << endl;
+	if (!this->json)
+	{
+		fout.open("users_database.bin", std::ios_base::binary);
+		if (!userslist.SerializeToOstream(&fout)) {
+			cerr << "Failed to write address book." << endl;
+		}
+		fout.close();
 	}
-	fout.close();
+	else {
+		std::string output;
+		google::protobuf::util::MessageToJsonString(this->userslist, &output);
+		
+		fout.open("users_database.json", std::ios_base::out);
+		fout << output;
+		fout.close();
+	}
 }
 
 void Users::addUser() {

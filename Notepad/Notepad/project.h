@@ -15,6 +15,7 @@ private:
 	project::Project project1;
 	project::ProjectNames projectslist;
 	versions::Versions verSys;
+	bool json;
 
 	void updateLastModified();
 
@@ -29,7 +30,7 @@ private:
 	void revertLastVersion();
 
 public:
-	Projects(std::string); 
+	Projects(std::string, bool); 
 
 	bool openProject();
 

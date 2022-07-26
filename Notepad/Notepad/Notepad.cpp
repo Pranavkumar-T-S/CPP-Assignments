@@ -6,6 +6,7 @@
 #include "login.h"
 #include "project.h"
 
+
 void loginMenu() {
 	std::cout << std::endl;
 	std::cout << "login menu" << std::endl;
@@ -50,11 +51,23 @@ int main()
 {
 	std::cout << "Mini Notepad Application!\n";
 
-	Users u1 = Users();
-	
 	std::string username = "", id, optionS;
 	int option;
 	bool flag = true, app = true;
+
+	std::string jsonS;
+	int json;
+	while (flag) {
+		std::cout << "Enter 1 to use json files , 0 to use protobuf message binary files: ";
+		std::cin >> jsonS;
+		json = toInt(jsonS);
+		if (json == 0 || json == 1) {
+			break;
+		}
+		std::cout << "Invalid Option" << std::endl;
+	}
+
+	Users u1 = Users(json);
 	while (app) {
 		system("cls");
 		while (username == "") {
@@ -69,12 +82,12 @@ int main()
 			switch (option) {
 			case 1:
 				username = u1.signIn();
-				
+
 				break;
 
 			case 2:
 				u1.addUser();
-				
+
 				break;
 
 			case 3:
@@ -82,7 +95,7 @@ int main()
 				app = false;
 				break;
 
-			case 4 :
+			case 4:
 				u1.printUserInfo();
 				break;
 
@@ -100,7 +113,7 @@ int main()
 			break;
 		}
 
-		Projects p1(username);
+		Projects p1(username, json);
 		flag = true;
 
 		system("cls");
@@ -124,23 +137,23 @@ int main()
 
 			case 3:
 				p1.createNewProject();
-				
+
 				break;
 
 			case 4:
 				std::cout << "Enter the id of project to delete: ";
 				std::cin >> id;
 				p1.deleteProject(id);
-				
+
 				break;
 
-			case 5 :
+			case 5:
 				username = "";
 				flag = false;
 				std::cout << "logging out" << std::endl;
 				break;
 
-			default :
+			default:
 				std::cout << "Invalid option" << std::endl;
 			}
 		}
@@ -164,38 +177,38 @@ int main()
 			switch (option) {
 
 			case 1:
-				
+
 				p1.printProjectInfo();
 				break;
 
 			case 2:
-				
+
 				p1.printText();
 				break;
 
 			case 3:
-				
+
 				p1.addLine();
 				break;
 
 			case 4:
-				
+
 				p1.removeLine();
 				break;
 
 			case 5:
-				
+
 				p1.updateLine();
 				break;
 
 			case 6:
-				
+
 				p1.printChanges();
 				break;
 
 			case 7:
 				p1.revertLastChange();
-				
+
 				break;
 
 			case 8:
@@ -208,7 +221,7 @@ int main()
 
 			case 10:
 				p1.writeProject();
-				
+
 				flag = 0;
 				break;
 

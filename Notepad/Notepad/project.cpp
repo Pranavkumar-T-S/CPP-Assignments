@@ -3,6 +3,7 @@
 #include <time.h>
 #include <direct.h>
 #include <vector>
+#include <google/protobuf/util/json_util.h>
 #include "project.pb.h"
 #include "versions.pb.h"
 #include "project.h"
@@ -20,16 +21,26 @@ int toInt(std::string num)
 	return res;
 }
 
-Projects::Projects(std::string username) {
+Projects::Projects(std::string username, bool json) {
+	this->json = json;
 	this->username = username;
 	std::ifstream fin;
 	_mkdir("projects");
 	system("cd");
-	fin.open("projects/projectheaders.bin", std::ios::in | std::ios::binary);
-	if (!this->projectslist.ParseFromIstream(&fin)) {
-		std::cout << "Failed to parse address book. " << std::endl;
+	if (!this->json)
+	{
+		fin.open("projects/projectheaders.bin", std::ios::in | std::ios::binary);
+		if (!this->projectslist.ParseFromIstream(&fin)) {
+			std::cout << "Failed to parse address book. " << std::endl;
+		}
+		fin.close();
 	}
-	fin.close();
+	else {
+		std::string input;
+		fin.open("projects/projectheaders.json", std::ios_base::in);
+		std::getline(fin, input);
+		google::protobuf::util::JsonStringToMessage(input, &this->projectslist);
+	}
 }
 
 bool Projects::openProject() {
@@ -42,18 +53,31 @@ bool Projects::openProject() {
 			if (this->username == projectslist.projectnames(i).author()) {
 				std::ifstream fin;
 
-				fin.open("./projects/" + id + "_" + projectslist.projectnames(i).name() + "/project.bin", std::ios::in | std::ios::binary);
-				if (!(this->project1.ParseFromIstream(&fin))) {
-					std::cout << "Failed to parse project file. " << std::endl;
-				}
-				std::cout << this->project1.author() << this->project1.createdtime();
-				fin.close();
+				if (!this->json) {
+					fin.open("./projects/" + id + "_" + projectslist.projectnames(i).name() + "/project.bin", std::ios::in | std::ios::binary);
+					if (!(this->project1.ParseFromIstream(&fin))) {
+						std::cout << "Failed to parse project file. " << std::endl;
+					}
+					std::cout << this->project1.author() << this->project1.createdtime();
+					fin.close();
 
-				fin.open("./projects/" + id + "_" + projectslist.projectnames(i).name() + "/vcs.bin", std::ios::in | std::ios::binary);
-				if (!(this->verSys.ParseFromIstream(&fin))) {
-					std::cout << "Failed to parse changes/version file. " << std::endl;
+
+					fin.open("./projects/" + id + "_" + projectslist.projectnames(i).name() + "/vcs.bin", std::ios::in | std::ios::binary);
+					if (!(this->verSys.ParseFromIstream(&fin))) {
+						std::cout << "Failed to parse changes/version file. " << std::endl;
+					}
+					fin.close();
 				}
-				fin.close();
+				else {
+					std::string input;
+					fin.open("./projects/" + id + "_" + projectslist.projectnames(i).name() + "/project.json", std::ios::in);
+					std::getline(fin, input);
+					google::protobuf::util::JsonStringToMessage(input, &this->project1);
+
+					fin.open("./projects/" + id + "_" + projectslist.projectnames(i).name() + "/vcs.json", std::ios::in);
+					std::getline(fin, input);
+					google::protobuf::util::JsonStringToMessage(input, &verSys);
+				}
 
 				return true;
 			}
@@ -67,6 +91,7 @@ bool Projects::openProject() {
 			return false;
 		}
 	}
+	return false;
 }
 
 void Projects::writeProject() {
@@ -75,17 +100,33 @@ void Projects::writeProject() {
 	std::string  id, name;
 	id = project1.id();
 	name = project1.name();
-	fout.open("./projects/" + id + "_" + name + "/project.bin", std::ios::out | std::ios::binary);
-	if (!this->project1.SerializeToOstream(&fout)) {
-		std::cout << "Failed to write address book." << std::endl;
-	}
-	fout.close();
+	if (!this->json) {
+		fout.open("./projects/" + id + "_" + name + "/project.bin", std::ios::out | std::ios::binary);
+		if (!this->project1.SerializeToOstream(&fout)) {
+			std::cout << "Failed to write address book." << std::endl;
+		}
+		fout.close();
 
-	fout.open("./projects/" + id + "_" + name + "/vcs.bin", std::ios::out | std::ios::binary);
-	if (!this->verSys.SerializeToOstream(&fout)) {
-		std::cout << "Failed to write changes/version." << std::endl;
+		fout.open("./projects/" + id + "_" + name + "/vcs.bin", std::ios::out | std::ios::binary);
+		if (!this->verSys.SerializeToOstream(&fout)) {
+			std::cout << "Failed to write changes/version." << std::endl;
+		}
+		fout.close();
 	}
-	fout.close();
+	else {
+		std::string output;
+		google::protobuf::util::MessageToJsonString(this->project1, &output);
+		
+		fout.open("./projects/" + id + "_" + name + "/project.json", std::ios::out);
+		fout << output;
+		fout.close();
+
+		google::protobuf::util::MessageToJsonString(this->verSys, &output);
+		
+		fout.open("./projects/" + id + "_" + name + "/vcs.json", std::ios::out);
+		fout << output;
+		fout.close();
+	}
 }
 
 void Projects::createNewProject() {
@@ -105,13 +146,21 @@ void Projects::createNewProject() {
 
 	time_t my_time = time(NULL);
 	newProject->set_creationdate(ctime(&my_time));
-
 	std::ofstream fout;
-	fout.open("projects/projectheaders.bin", std::ios::out | std::ios::binary);
-	if (!this->projectslist.SerializeToOstream(&fout))
-		std::cout << "Unable to write data" << std::endl;
-	fout.close();
-
+	if (!this->json) {
+		fout.open("projects/projectheaders.bin", std::ios::out | std::ios::binary);
+		if (!this->projectslist.SerializeToOstream(&fout))
+			std::cout << "Unable to write data" << std::endl;
+		fout.close();
+	}
+	else {
+		std::string output;
+		google::protobuf::util::MessageToJsonString(this->projectslist, &output);
+		
+		fout.open("projects/projectheaders.json", std::ios_base::out);
+		fout << output;
+		fout.close();
+	}
 
 	project::Project p1 = project::Project();
 	p1.set_id(id);
@@ -119,16 +168,26 @@ void Projects::createNewProject() {
 	p1.set_author(this->username);
 	p1.set_createdtime(ctime(&my_time));
 	p1.set_lastmodified(ctime(&my_time));
-
+	
 	std::string ud = "_";
 	_chdir("projects");
 	_mkdir(&(id + ud + name)[0]);
-	fout.open(id + ud + name + "/" + "project.bin", std::ios::out | std::ios::binary);
-
-	if (!p1.SerializeToOstream(&fout))
-		std::cout << "Unable to write data";
-	fout.close();
+	if (!this->json) {
+		fout.open(id + ud + name + "/" + "project.bin", std::ios::out | std::ios::binary);
+		if (!p1.SerializeToOstream(&fout))
+			std::cout << "Unable to write data";
+		fout.close();
+	}
+	else {
+		std::string output;
+		google::protobuf::util::MessageToJsonString(p1, &output);
+		
+		fout.open(id + ud + name + "/" + "project.json", std::ios_base::out);
+		fout << output;
+		fout.close();
+	}
 	_chdir("..");
+
 }
 
 void Projects::printProjectInfo() {
@@ -167,10 +226,20 @@ void Projects::deleteProject(std::string id) {
 		}
 	}
 	std::ofstream fout;
-	fout.open("projects/projectheaders.bin", std::ios::out | std::ios::binary);
-	if (!this->projectslist.SerializeToOstream(&fout))
-		std::cout << "Unable to write data";
-	fout.close();
+	if (!this->json) {
+		fout.open("projects/projectheaders.bin", std::ios::out | std::ios::binary);
+		if (!this->projectslist.SerializeToOstream(&fout))
+			std::cout << "Unable to write data";
+		fout.close();
+	}
+	else {
+		std::string output;
+		google::protobuf::util::MessageToJsonString(this->projectslist, &output);
+		
+		fout.open("projects/projectheaders.json", std::ios_base::out);
+		fout << output;
+		fout.close();
+	}
 }
 
 void Projects::deleteAllProject() {
@@ -386,11 +455,21 @@ void Projects::addVersion() {
 		newVersion->set_createdtime(ctime(&my_time));
 
 		std::ofstream fout;
-		fout.open("./projects/" + project1.id() + "_" + project1.name() + "/vcs.bin", std::ios::out | std::ios::binary);
-		if (!this->verSys.SerializeToOstream(&fout)) {
-			std::cout << "Failed to write changes/version." << std::endl;
+		if (!this->json) {
+			fout.open("./projects/" + project1.id() + "_" + project1.name() + "/vcs.bin", std::ios::out | std::ios::binary);
+			if (!this->verSys.SerializeToOstream(&fout)) {
+				std::cout << "Failed to write changes/version." << std::endl;
+			}
+			fout.close();
 		}
-		fout.close();
+		else {
+			std::string output;
+			google::protobuf::util::MessageToJsonString(this->verSys, &output);
+			
+			fout.open("./projects/" + project1.id() + "_" + project1.name() + "/vcs.bin", std::ios_base::out);
+			fout << output;
+			fout.close();
+		}
 
 	}
 }

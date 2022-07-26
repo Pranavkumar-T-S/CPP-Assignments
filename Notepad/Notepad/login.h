@@ -7,9 +7,10 @@ std::string encryptPassword(std::string);
 
 class Users {
 	users::Users userslist;
+	bool json;
 
 public:
-	Users();
+	Users(bool);
 
 	void writeData();
 
