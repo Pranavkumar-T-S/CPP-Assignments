@@ -1,0 +1,17 @@
+syntax = "proto3";
+package imgmask;
+
+enum colorspace {
+    BGR = 0;
+    HSV = 1;
+}
+
+message maskdetails{
+    colorspace cstype = 1;
+    int32 xmin = 2;
+    int32 xmax = 3;
+    int32 ymin = 4;
+    int32 ymax = 5;
+    int32 zmin = 6;
+    int32 zmax = 7;
+}

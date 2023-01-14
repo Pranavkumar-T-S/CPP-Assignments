@@ -1,2 +1,4 @@
 *.exe
 /playground/*
+build*/**
+test*/**
