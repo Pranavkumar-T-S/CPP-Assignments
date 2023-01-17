@@ -19,6 +19,7 @@ ProtobufHandler::ProtobufHandler(std::string filename)
 
 void ProtobufHandler::set_default_values()
 {
+	this->mask1.set_cstype(imgmask::BGR);
 	this->mask1.set_xmin(0);
 	this->mask1.set_xmax(255);
 	this->mask1.set_ymin(0);
@@ -46,12 +47,10 @@ bool ProtobufHandler::dump()
 	std::ofstream fout;
 	std::string temp;
 	bool status;
-	std::cout << this->filename;
 	fout.open(this->filename);
-	std::cout << "fd" << this->mask1.xmax() << this->mask1.xmin() << std::endl;
-	this->mask1.SerializeToString(&temp);
-	std::cout << "re" << temp << "ew" << std::endl;
-	fout.write(temp.c_str(), temp.size());
+	temp = this->mask1.SerializeAsString();
+	std::cout << temp << std::endl;
+	fout.write(temp.c_str(),temp.size());
 	fout.close();
 	return true;
 }
