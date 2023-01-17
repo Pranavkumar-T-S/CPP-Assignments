@@ -1,29 +1,28 @@
 find_package(Protobuf REQUIRED)
+# custom command to create header and source file from .proto file using proto compiler and to move header to include directory
+add_custom_command(OUTPUT ${CMAKE_CURRENT_SOURCE_DIR}/src/imgmask.pb.cc ${CMAKE_CURRENT_BINARY_DIR}/include/imgmask.pb.h
+                   COMMAND protobuf::protoc --cpp_out=${CMAKE_CURRENT_SOURCE_DIR}/src -I=${PROJECT_SOURCE_DIR}/data ${PROJECT_SOURCE_DIR}/data/imgmask.proto
+                   COMMAND mv ${CMAKE_CURRENT_SOURCE_DIR}/src/imgmask.pb.h ${CMAKE_CURRENT_BINARY_DIR}/include/
+                   DEPENDS ${PROJECT_SOURCE_DIR}/data/imgmask.proto
+                   WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+                   COMMENT "Creating header and source files for .proto file")
 add_library(ProtobufHandler STATIC ${CMAKE_CURRENT_SOURCE_DIR}/src/protobuf_handler.cc ${CMAKE_CURRENT_SOURCE_DIR}/src/imgmask.pb.cc)
 
+set_target_properties( ProtobufHandler
+    PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib"
+    LIBRARY_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/lib"
+    RUNTIME_OUTPUT_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/bin"
+)
+
 # protobuf_generate(LANGUAGE cpp TARGET ProtobufHandler PROTOC_OUT_DIR ${PROJECT_BINARY_DIR}/data PROTOS data/imgmask.proto IMPORT_DIRS ${PROJECT_SOURCE_DIR}/data )
-
-# add_custom_command(
-#   OUTPUT imgmask.pb.cc imgmask.pb.h
-#   COMMAND protoc  --cpp_out=${CMAKE_CURRENT_BINARY_DIR} ${PROJECT_SOURCE_DIR}/data
-#   DEPENDS ${PROJECT_SOURCE_DIR}/data/imgmask.proto)
-# add_library(ProtoHandler imgmask.pb.cc)
-
 # protobuf_generate_cpp( ${A} ${B} PROTOS "${PROJECT_SOURCE_DIR}/data/imgmask.proto" )
 # protobuf_generate_cpp(PROTO_SRCS PROTO_HDRS EXPORT_MACRO DLL_EXPORT foo.proto)
 
 set(__PROTOFILE__ "data/configuration.protobuf")
-set(__RPTOFILE__ "data/configguration.protobuf")
 target_compile_features(ProtobufHandler PUBLIC cxx_std_11)
 
 target_compile_definitions(ProtobufHandler PUBLIC __PROTOFILE__="${__PROTOFILE__}")
 configure_file(include/protobuf_handler.hpp include/protobuf_handler.hpp)
-configure_file(include/imgmask.pb.h include/imgmask.pb.h)
 target_include_directories(ProtobufHandler PUBLIC ${Protobuf_INCLUDE_DIRS} PUBLIC ${CMAKE_CURRENT_BINARY_DIR}/include)
 target_link_libraries(ProtobufHandler ${Protobuf_LIBRARIES})
-
-
-
-# add_custom_target(proto_src_hdr	COMMAND protobuf::protoc  --cpp_out=${CMAKE_CURRENT_DIR} -I${PROJECT_SOURCE_DIR}/data imgmask.proto)
-
-# add_dependencies(ProtobufHandler proto_scr_hdr)
